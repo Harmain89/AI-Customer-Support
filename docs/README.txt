@@ -1,0 +1,5 @@
+AI-Powered Customer Support Automation with RAG & Smart Escalation
+
+This n8n workflow is a fully automated, 24/7 customer support agent built for e-commerce stores. When a customer sends a message through the chat widget, the AI agent searches a vector knowledge base (Supabase + pgvector) to retrieve real company policies, then generates a grounded, accurate response using GPT — no hallucinated answers, no generic guesses. Alongside the reply, every interaction is automatically triaged: the system classifies the message by category, priority, and sentiment, then logs a structured ticket to a data table for a complete audit trail.
+
+What makes this automation genuinely powerful is its smart escalation layer. If the agent detects negative sentiment, a refund or billing dispute, an out-of-scope question, or an explicit request to speak with a human, it instantly fires an alert to a Discord channel so the support team can step in — while still sending the customer a friendly holding reply. The result is a system that handles the bulk of routine inquiries instantly and autonomously, while ensuring no difficult or sensitive case ever falls through the cracks.

@@ -1,0 +1,568 @@
+{
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "7110d14b-d5a4-44ab-bfa1-615e5c7bd8a0",
+      "name": "Load Knowledge Base",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "faq-1",
+              "name": "text",
+              "type": "string",
+              "value": "NIMBUS STORE - CUSTOMER SUPPORT KNOWLEDGE BASE\n\nBUSINESS HOURS: Our support team is available Monday to Friday, 9am to 6pm (EST). Live chat is answered within 5 minutes during these hours. Outside hours, tickets are answered the next business day.\n\nSHIPPING: Standard shipping takes 3-5 business days within the US and costs $4.99 (free on orders over $50). Express shipping takes 1-2 business days and costs $14.99. International shipping takes 7-14 business days. You receive a tracking link by email once your order ships.\n\nREFUNDS & RETURNS: We offer a 30-day money-back guarantee. Items must be unused and in original packaging. Refunds are processed to the original payment method within 5-7 business days after we receive the return. To start a return, the customer needs their order number and email. Sale items marked FINAL SALE cannot be returned.\n\nORDER CHANGES & CANCELLATIONS: Orders can be changed or cancelled within 1 hour of purchase. After that the order enters fulfillment and cannot be modified.\n\nACCOUNT HELP: Customers can reset their password from the login page using the Forgot Password link. Account email changes require verifying the old email address.\n\nPAYMENTS: We accept Visa, Mastercard, American Express, PayPal, and Apple Pay. We do not store full card numbers.\n\nWARRANTY: Electronics carry a 1-year limited warranty covering manufacturing defects. Physical damage and water damage are not covered."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "1e003452-7c2f-4c06-a67c-fc1685b3bc38",
+      "name": "Company FAQ & Policies",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "mode": "id",
+          "value": "documents",
+          "cachedResultName": "documents"
+        },
+        "options": {}
+      },
+      "id": "aa0383ac-6cc2-4a74-b7bd-9da91e11f2ba",
+      "name": "Store Docs in Supabase",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        480,
+        0
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "YoiscjeOhD0Yoxe0",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "33bf486c-a3e2-4e77-9d85-bc6f7c2116bc",
+      "name": "Ingest Embeddings",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        448,
+        224
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "Wj5nwh86U6EyND93",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "textSplittingMode": "custom",
+        "options": {}
+      },
+      "id": "05b5cfb2-23c6-423d-90e5-b3d9924f5c2b",
+      "name": "Split & Load FAQ",
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        576,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "chunkSize": 800,
+        "chunkOverlap": 100,
+        "options": {}
+      },
+      "id": "d79efd13-ed74-464c-98af-092c6a5f0162",
+      "name": "Chunk Text",
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        656,
+        432
+      ]
+    },
+    {
+      "parameters": {
+        "public": true,
+        "options": {
+          "inputPlaceholder": "Type your question...",
+          "loadPreviousSession": "memory",
+          "subtitle": "Ask us anything - we're here to help 24/7.",
+          "title": "Nimbus Support",
+          "responseMode": "lastNode"
+        }
+      },
+      "id": "6425c33e-1c21-457d-9b67-3e15bf15e630",
+      "name": "Customer Chat",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        848
+      ],
+      "webhookId": "36029bda-f20c-4053-b2f6-f31796152655"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatInput }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are Nimbus Store's friendly customer support agent.\n\nRULES:\n1. For any question about company policy (shipping, refunds, returns, hours, accounts, payments, warranty), ALWAYS call the \"Company Knowledge Base\" tool first and base your answer strictly on what it returns. Never invent a policy.\n2. If the knowledge base does not contain the answer, say so honestly and set needs_human to true.\n3. Be concise, warm, and professional.\n\nESCALATION - set needs_human to true when: the customer is angry or the sentiment is negative, the request is a refund/billing dispute, the answer is not in the knowledge base, or the customer explicitly asks for a human.\n\nFor every message you must return: answer (the reply shown to the customer), category (one of: shipping, refunds, orders, account, payments, warranty, other), priority (low, medium, or high), sentiment (positive, neutral, or negative), needs_human (boolean), and ticket_summary (one short sentence describing the request).",
+          "enableStreaming": false
+        }
+      },
+      "id": "aecafb01-c683-4a35-961c-d937f9a72590",
+      "name": "AI Support Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        512,
+        848
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini",
+          "cachedResultName": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "0bd82ede-cbb7-485b-95bb-4d4de55bcd3b",
+      "name": "GPT-5 mini",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        352,
+        1072
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "Wj5nwh86U6EyND93",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "id": "cc11bf03-ddac-4076-9ef6-13fdddef91b6",
+      "name": "Conversation Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        480,
+        1072
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Search the Nimbus Store knowledge base for official answers about shipping, refunds, returns, business hours, accounts, payments, and warranty. Always use this before answering a customer policy question.",
+        "tableName": {
+          "__rl": true,
+          "mode": "id",
+          "value": "documents",
+          "cachedResultName": "documents"
+        },
+        "options": {}
+      },
+      "id": "5b7da65d-8c57-47b1-9c5c-74109c64f1fb",
+      "name": "Company Knowledge Base",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        608,
+        1072
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "YoiscjeOhD0Yoxe0",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "8bb75765-1eb6-43ac-afb2-f7ae4fa4ba4b",
+      "name": "Search Embeddings",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        688,
+        1280
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "Wj5nwh86U6EyND93",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{ \"answer\": \"Our standard shipping takes 3-5 business days.\", \"category\": \"shipping\", \"priority\": \"low\", \"sentiment\": \"neutral\", \"needs_human\": false, \"ticket_summary\": \"Customer asked how long shipping takes.\" }"
+      },
+      "id": "6521c7c0-a838-41e6-8548-bbf0224fa7c5",
+      "name": "Parse Ticket Fields",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        896,
+        1072
+      ]
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "9K5UMxJdT2fv8ObP",
+          "cachedResultName": "Support Tickets"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "session_id": "={{ $('Customer Chat').item.json.sessionId }}",
+            "customer_message": "={{ $('Customer Chat').item.json.chatInput }}",
+            "agent_answer": "={{ $('AI Support Agent').item.json.output.answer }}",
+            "category": "={{ $('AI Support Agent').item.json.output.category }}",
+            "priority": "={{ $('AI Support Agent').item.json.output.priority }}",
+            "sentiment": "={{ $('AI Support Agent').item.json.output.sentiment }}",
+            "status": "={{ $('AI Support Agent').item.json.output.needs_human ? 'escalated' : 'resolved' }}",
+            "summary": "={{ $('AI Support Agent').item.json.output.ticket_summary }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "5fd4c509-85e5-4a56-b27e-c21cccbf9a73",
+      "name": "Save Ticket to Log",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1104,
+        848
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "cond-1",
+              "leftValue": "={{ $('AI Support Agent').item.json.output.needs_human }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              },
+              "rightValue": ""
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "acef95aa-9945-4a86-a7e2-0857ab58b02a",
+      "name": "Needs Human Handoff?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1328,
+        848
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "webhook",
+        "content": "=**New escalated support ticket**\nPriority: {{ $('AI Support Agent').item.json.output.priority }}  |  Category: {{ $('AI Support Agent').item.json.output.category }}  |  Sentiment: {{ $('AI Support Agent').item.json.output.sentiment }}\nCustomer: {{ $('Customer Chat').item.json.chatInput }}\nSummary: {{ $('AI Support Agent').item.json.output.ticket_summary }}",
+        "options": {}
+      },
+      "id": "d65bfd54-fe04-41f8-9c42-44d9f0f04b20",
+      "name": "Escalate to Discord",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        1552,
+        720
+      ],
+      "webhookId": "dc02cae0-c5fd-4f67-ac0c-ab820495815f",
+      "credentials": {
+        "discordWebhookApi": {
+          "id": "8F1mnjvIEIQROoCN",
+          "name": "Discord Webhook account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "reply-1",
+              "name": "output",
+              "type": "string",
+              "value": "={{ $('AI Support Agent').item.json.output.answer }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "53fe2645-fcb6-4f03-ba13-24e6c8ba3abb",
+      "name": "Format Chat Reply",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1792,
+        880
+      ]
+    },
+    {
+      "parameters": {
+        "content": {
+          "config": {
+            "name": "Sticky Note 57cadee4",
+            "parameters": {
+              "content": "## 1) Knowledge Base Ingestion\nRun this branch ONCE to load the company FAQ/policies into the Supabase vector store. Re-run whenever the docs change.",
+              "height": 200,
+              "width": 780,
+              "color": 4
+            },
+            "position": [
+              752,
+              1328
+            ]
+          }
+        }
+      },
+      "id": "e48060bb-07bc-41cb-889d-918d0d98102e",
+      "name": "Sticky Note ac16f373",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        752,
+        1328
+      ]
+    }
+  ],
+  "connections": {
+    "Load Knowledge Base": {
+      "main": [
+        [
+          {
+            "node": "Company FAQ & Policies",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Company FAQ & Policies": {
+      "main": [
+        [
+          {
+            "node": "Store Docs in Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ingest Embeddings": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Store Docs in Supabase",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split & Load FAQ": {
+      "ai_document": [
+        [
+          {
+            "node": "Store Docs in Supabase",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chunk Text": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Split & Load FAQ",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Customer Chat": {
+      "main": [
+        [
+          {
+            "node": "AI Support Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Support Agent": {
+      "main": [
+        [
+          {
+            "node": "Save Ticket to Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GPT-5 mini": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Support Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conversation Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Support Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Company Knowledge Base": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Support Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Embeddings": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Company Knowledge Base",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Ticket Fields": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Support Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Ticket to Log": {
+      "main": [
+        [
+          {
+            "node": "Needs Human Handoff?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Needs Human Handoff?": {
+      "main": [
+        [
+          {
+            "node": "Escalate to Discord",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format Chat Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Escalate to Discord": {
+      "main": [
+        [
+          {
+            "node": "Format Chat Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "aiBuilderAssisted": true,
+    "builderVariant": "mcp",
+    "instanceId": "21cb3c5ab0e736975c3d833ed9242e7a054b56c683027b8ac34ff8b391fc0bad"
+  }
+}
