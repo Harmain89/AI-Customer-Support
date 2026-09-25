@@ -332,10 +332,10 @@ Within your n8n canvas, configure the corresponding credentials for the nodes:
 
 Engineered with precision by **Harmain Rizwan** — *AI Agents & Workflow Automation Architect*.
 
-- 🌐 **Portfolio**: [harmainrizwan.com](https://harmainrizwan.com)
+<!-- - 🌐 **Portfolio**: [harmainrizwan.com](https://harmainrizwan.com) -->
 - 💼 **LinkedIn**: [linkedin.com/in/harmain-rizwan](https://linkedin.com/in/harmain-rizwan)
 - 🐙 **GitHub**: [@Harmain89](https://github.com/Harmain89)
-- 📩 **Contact**: [Get in touch](mailto:contact@harmainrizwan.com)
+- 📩 **Contact**: [Get in touch](mailto:harmainrizwanr@gmail.com)
 
 ---
 
