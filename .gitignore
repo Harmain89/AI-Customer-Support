@@ -1,0 +1,63 @@
+# ==============================================================================
+# Git Ignore Configuration for n8n Workflow Repository
+# ==============================================================================
+
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+*.env
+credentials.json
+credentials_local.json
+secrets/
+*.pem
+*.key
+*.cert
+
+# n8n local runtime and storage
+.n8n/
+n8n-local/
+*.sqlite
+*.sqlite-journal
+backups/
+export_credentials.json
+
+# Operating System files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Thumbs.db:encryptable
+desktop.ini
+
+# IDE & Code Editor files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+
+# Node / Package manager artifacts (if tooling is used)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Logs and temporary execution dumps
+logs/
+*.log
+tmp/
+temp/
+scratch/
+
+# Explicitly ensure core workflow and docs are tracked
+!main-workflow.json
+!README.md
+!prompts.txt
+!assets/
+!sql/
